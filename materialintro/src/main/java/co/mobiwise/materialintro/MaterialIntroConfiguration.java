@@ -1,6 +1,8 @@
 package co.mobiwise.materialintro;
 
 
+import android.view.ViewGroup;
+
 import co.mobiwise.materialintro.shape.Focus;
 import co.mobiwise.materialintro.shape.FocusGravity;
 import co.mobiwise.materialintro.utils.Constants;
@@ -26,6 +28,8 @@ public class MaterialIntroConfiguration {
     private boolean isDotViewEnabled;
 
     private boolean isImageViewEnabled;
+
+    private ViewGroup mParentViewGroup;
 
     public MaterialIntroConfiguration() {
         maskColor = Constants.DEFAULT_MASK_COLOR;
@@ -76,6 +80,8 @@ public class MaterialIntroConfiguration {
         return focusGravity;
     }
 
+
+
     public void setFocusGravity(FocusGravity focusGravity) {
         this.focusGravity = focusGravity;
     }
@@ -86,6 +92,14 @@ public class MaterialIntroConfiguration {
 
     public void setPadding(int padding) {
         this.padding = padding;
+    }
+
+    public ViewGroup getParentViewGroup() {
+        return mParentViewGroup;
+    }
+
+    public void setParentViewGroup(ViewGroup group) {
+        this.mParentViewGroup = group;
     }
 
     public boolean isDismissOnTouch() {

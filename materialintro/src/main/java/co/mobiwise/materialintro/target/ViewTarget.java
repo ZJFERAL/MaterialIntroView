@@ -1,18 +1,23 @@
 package co.mobiwise.materialintro.target;
 
+import android.content.Context;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.view.View;
 
+import co.mobiwise.materialintro.utils.Utils;
+
 /**
  * Created by mertsimsek on 25/01/16.
  */
-public class ViewTarget implements Target{
+public class ViewTarget implements Target {
 
+    private Context context;
     private View view;
 
-    public ViewTarget(View view) {
+    public ViewTarget(View view, Context context) {
         this.view = view;
+        this.context = context;
     }
 
     @Override
@@ -20,7 +25,8 @@ public class ViewTarget implements Target{
 
         int[] location = new int[2];
         view.getLocationInWindow(location);
-        return new Point(location[0] + (view.getWidth() / 2), location[1] + (view.getHeight() / 2));
+        return new Point((int) (location[0] - Utils.getLeftWidth(context) + (view.getWidth() / 2)), location[1] + (view.getHeight() / 2));
+
     }
 
     @Override
@@ -28,9 +34,9 @@ public class ViewTarget implements Target{
         int[] location = new int[2];
         view.getLocationInWindow(location);
         return new Rect(
-                location[0],
+                (int) (location[0] - Utils.getLeftWidth(context)),
                 location[1],
-                location[0] + view.getWidth(),
+                (int) (location[0] - Utils.getLeftWidth(context) + view.getWidth()),
                 location[1] + view.getHeight()
         );
     }

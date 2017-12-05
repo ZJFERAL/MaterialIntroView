@@ -11,6 +11,7 @@ import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.os.Build;
 import android.os.Handler;
+import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -125,6 +126,7 @@ public class MaterialIntroView extends RelativeLayout {
      */
     private int width;
     private int height;
+    private int screenHeight;
 
     /**
      * Dismiss on touch any position
@@ -288,6 +290,8 @@ public class MaterialIntroView extends RelativeLayout {
         dotView = LayoutInflater.from(getContext()).inflate(R.layout.dotview, null);
         dotView.measure(MeasureSpec.UNSPECIFIED, MeasureSpec.UNSPECIFIED);
 
+        screenHeight = ((Activity) context).getWindowManager().getDefaultDisplay().getHeight();
+
         getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
@@ -295,7 +299,7 @@ public class MaterialIntroView extends RelativeLayout {
                 if (targetShape != null && targetShape.getPoint().y != 0 && !isLayoutCompleted) {
                     if (isInfoEnabled)
                         setInfoLayout();
-                    if(isDotViewEnabled)
+                    if (isDotViewEnabled)
                         setDotViewLayout();
                     removeOnGlobalLayoutListener(MaterialIntroView.this, this);
                 }
@@ -305,7 +309,7 @@ public class MaterialIntroView extends RelativeLayout {
     }
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
-    public static void removeOnGlobalLayoutListener(View v, ViewTreeObserver.OnGlobalLayoutListener listener){
+    public static void removeOnGlobalLayoutListener(View v, ViewTreeObserver.OnGlobalLayoutListener listener) {
         if (Build.VERSION.SDK_INT < 16) {
             v.getViewTreeObserver().removeGlobalOnLayoutListener(listener);
         } else {
@@ -395,15 +399,14 @@ public class MaterialIntroView extends RelativeLayout {
     /**
      * Shows material view with fade in
      * animation
-     *
-     * @param activity
      */
-    private void show(Activity activity) {
+    private void show(ViewGroup group) {
+        isShowing = true;
 
-        if (preferencesManager.isDisplayed(materialIntroViewId))
-            return;
+//        if (preferencesManager.isDisplayed(materialIntroViewId))
+//            return;
 
-        ((ViewGroup) activity.getWindow().getDecorView()).addView(this);
+        group.addView(this);
 
         setReady(true);
 
@@ -422,16 +425,24 @@ public class MaterialIntroView extends RelativeLayout {
             }
         }, delayMillis);
 
-        if(isIdempotent) {
+        if (isIdempotent) {
             preferencesManager.setDisplayed(materialIntroViewId);
         }
+    }
+
+    private boolean isShowing = false;
+
+    public boolean isShowing() {
+        return isShowing;
     }
 
     /**
      * Dismiss Material Intro View
      */
     public void dismiss() {
-        if(!isIdempotent) {
+        if (!isShowing) return;
+        isShowing = false;
+        if (!isIdempotent) {
             preferencesManager.setDisplayed(materialIntroViewId);
         }
 
@@ -447,8 +458,8 @@ public class MaterialIntroView extends RelativeLayout {
         });
     }
 
-    private void removeMaterialView(){
-        if(getParent() != null )
+    private void removeMaterialView() {
+        if (getParent() != null)
             ((ViewGroup) getParent()).removeView(this);
     }
 
@@ -472,7 +483,8 @@ public class MaterialIntroView extends RelativeLayout {
                         ViewGroup.LayoutParams.MATCH_PARENT,
                         ViewGroup.LayoutParams.FILL_PARENT);
 
-                if (targetShape.getPoint().y < height / 2) {
+
+                if (targetShape.getPoint().y < screenHeight / 2.0) {
                     ((RelativeLayout) infoView).setGravity(Gravity.TOP);
                     infoDialogParams.setMargins(
                             0,
@@ -485,7 +497,7 @@ public class MaterialIntroView extends RelativeLayout {
                             0,
                             0,
                             0,
-                            height - (targetShape.getPoint().y + targetShape.getHeight() / 2) + 2 * targetShape.getHeight() / 2);
+                            screenHeight - (targetShape.getPoint().y + targetShape.getHeight() / 2) + 2 * targetShape.getHeight() / 2);
                 }
 
                 infoView.setLayoutParams(infoDialogParams);
@@ -493,7 +505,7 @@ public class MaterialIntroView extends RelativeLayout {
 
                 addView(infoView);
 
-                if (!isImageViewEnabled){
+                if (!isImageViewEnabled) {
                     imageViewIcon.setVisibility(GONE);
                 }
 
@@ -594,15 +606,15 @@ public class MaterialIntroView extends RelativeLayout {
         this.isInfoEnabled = isInfoEnabled;
     }
 
-    private void enableImageViewIcon(boolean isImageViewEnabled){
+    private void enableImageViewIcon(boolean isImageViewEnabled) {
         this.isImageViewEnabled = isImageViewEnabled;
     }
 
-    private void setIdempotent(boolean idempotent){
+    private void setIdempotent(boolean idempotent) {
         this.isIdempotent = idempotent;
     }
 
-    private void enableDotView(boolean isDotViewEnabled){
+    private void enableDotView(boolean isDotViewEnabled) {
         this.isDotViewEnabled = isDotViewEnabled;
     }
 
@@ -629,7 +641,7 @@ public class MaterialIntroView extends RelativeLayout {
         this.materialIntroListener = materialIntroListener;
     }
 
-    private void setPerformClick(boolean isPerformClick){
+    private void setPerformClick(boolean isPerformClick) {
         this.isPerformClick = isPerformClick;
     }
 
@@ -643,6 +655,7 @@ public class MaterialIntroView extends RelativeLayout {
         private Activity activity;
 
         private Focus focusType = Focus.MINIMUM;
+        private ViewGroup mParentViewGroup;
 
         public Builder(Activity activity) {
             this.activity = activity;
@@ -680,7 +693,7 @@ public class MaterialIntroView extends RelativeLayout {
         }
 
         public Builder setTarget(View view) {
-            materialIntroView.setTarget(new ViewTarget(view));
+            materialIntroView.setTarget(new ViewTarget(view, activity));
             return this;
         }
 
@@ -695,6 +708,9 @@ public class MaterialIntroView extends RelativeLayout {
         }
 
         public Builder setInfoText(CharSequence infoText) {
+            if (TextUtils.isEmpty(infoText)) {
+                return this;
+            }
             materialIntroView.enableInfoDialog(true);
             materialIntroView.setTextViewInfo(infoText);
             return this;
@@ -715,6 +731,11 @@ public class MaterialIntroView extends RelativeLayout {
             return this;
         }
 
+        public Builder setParentViewGroup(ViewGroup group) {
+            this.mParentViewGroup = group;
+            return this;
+        }
+
         public Builder enableDotAnimation(boolean isDotAnimationEnabled) {
             materialIntroView.enableDotView(isDotAnimationEnabled);
             return this;
@@ -732,6 +753,7 @@ public class MaterialIntroView extends RelativeLayout {
 
         public Builder setConfiguration(MaterialIntroConfiguration configuration) {
             materialIntroView.setConfiguration(configuration);
+            this.mParentViewGroup = configuration.getParentViewGroup();
             return this;
         }
 
@@ -746,20 +768,20 @@ public class MaterialIntroView extends RelativeLayout {
             return this;
         }
 
-        public Builder performClick(boolean isPerformClick){
+        public Builder performClick(boolean isPerformClick) {
             materialIntroView.setPerformClick(isPerformClick);
             return this;
         }
 
         public MaterialIntroView build() {
-            if(materialIntroView.usesCustomShape) {
+            if (materialIntroView.usesCustomShape) {
                 return materialIntroView;
             }
 
             // no custom shape supplied, build our own
             Shape shape;
 
-            if(materialIntroView.shapeType == ShapeType.CIRCLE) {
+            if (materialIntroView.shapeType == ShapeType.CIRCLE) {
                 shape = new Circle(
                         materialIntroView.targetView,
                         materialIntroView.focusType,
@@ -778,10 +800,11 @@ public class MaterialIntroView extends RelativeLayout {
         }
 
         public MaterialIntroView show() {
-            build().show(activity);
+            build().show(mParentViewGroup);
             return materialIntroView;
         }
 
     }
+
 
 }

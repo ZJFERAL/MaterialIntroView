@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <RelativeLayout
     android:id="@+id/info_layout"
     xmlns:android="http://schemas.android.com/apk/res/android"
@@ -33,7 +32,7 @@
                 android:layout_marginLeft="16dp"
                 android:layout_marginTop="16dp"
                 android:layout_marginBottom="16dp"
-                android:background="@drawable/icon_question"/>
+                android:background="@drawable/ic_error_outline_yellow_800_24dp"/>
 
             <TextView
                 android:id="@+id/textview_info"

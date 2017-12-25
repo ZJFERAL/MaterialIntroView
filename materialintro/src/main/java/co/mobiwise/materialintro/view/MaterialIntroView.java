@@ -13,6 +13,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.text.TextUtils;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -127,6 +128,7 @@ public class MaterialIntroView extends RelativeLayout {
     private int width;
     private int height;
     private int screenHeight;
+    private int screenWidth;
 
     /**
      * Dismiss on touch any position
@@ -169,7 +171,7 @@ public class MaterialIntroView extends RelativeLayout {
     /**
      * Info Dialog Icon
      */
-    private ImageView imageViewIcon;
+    private ImageView imageUpLeft, imageUpMiddle, imageUpRight, imageDownLeft, imageDownMiddle, imageDownRight;
 
     /**
      * Image View will be shown if
@@ -254,7 +256,7 @@ public class MaterialIntroView extends RelativeLayout {
         delayMillis = Constants.DEFAULT_DELAY_MILLIS;
         fadeAnimationDuration = Constants.DEFAULT_FADE_DURATION;
         padding = Constants.DEFAULT_TARGET_PADDING;
-        colorTextViewInfo = Constants.DEFAULT_COLOR_TEXTVIEW_INFO;
+        colorTextViewInfo = Constants.DEFAULT_COLOR_TEXT_VIEW_INFO;
         focusType = Focus.ALL;
         focusGravity = FocusGravity.CENTER;
         shapeType = ShapeType.CIRCLE;
@@ -280,17 +282,26 @@ public class MaterialIntroView extends RelativeLayout {
         eraser.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
         eraser.setFlags(Paint.ANTI_ALIAS_FLAG);
 
-        View layoutInfo = LayoutInflater.from(getContext()).inflate(R.layout.material_intro_card, null);
+        View layoutInfo = LayoutInflater.from(getContext()).inflate(R.layout.material_intro_text, null);
 
         infoView = layoutInfo.findViewById(R.id.info_layout);
         textViewInfo = (TextView) layoutInfo.findViewById(R.id.textview_info);
         textViewInfo.setTextColor(colorTextViewInfo);
-        imageViewIcon = (ImageView) layoutInfo.findViewById(R.id.imageview_icon);
+
+        imageUpLeft = layoutInfo.findViewById(R.id.arrow_up_left);
+        imageUpMiddle = layoutInfo.findViewById(R.id.arrow_up_middle);
+        imageUpRight = layoutInfo.findViewById(R.id.arrow_up_right);
+
+        imageDownLeft = layoutInfo.findViewById(R.id.arrow_down_left);
+        imageDownMiddle = layoutInfo.findViewById(R.id.arrow_down_middle);
+        imageDownRight = layoutInfo.findViewById(R.id.arrow_down_right);
+
 
         dotView = LayoutInflater.from(getContext()).inflate(R.layout.dotview, null);
         dotView.measure(MeasureSpec.UNSPECIFIED, MeasureSpec.UNSPECIFIED);
 
-        screenHeight = ((Activity) context).getWindowManager().getDefaultDisplay().getHeight();
+        screenHeight = Utils.getScreenHeight(context);
+        screenWidth = (int) Utils.getVirtualWidth(context);
 
         getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
@@ -405,7 +416,7 @@ public class MaterialIntroView extends RelativeLayout {
 
 //        if (preferencesManager.isDisplayed(materialIntroViewId))
 //            return;
-
+        if (group == null) Log.e("lib", "group is null");
         group.addView(this);
 
         setReady(true);
@@ -484,20 +495,49 @@ public class MaterialIntroView extends RelativeLayout {
                         ViewGroup.LayoutParams.FILL_PARENT);
 
 
-                if (targetShape.getPoint().y < screenHeight / 2.0) {
+                int y = targetShape.getPoint().y;
+                int x = targetShape.getPoint().x;
+
+                if (y < screenHeight / 2.0) {
                     ((RelativeLayout) infoView).setGravity(Gravity.TOP);
+                    if (x <= screenWidth / 3.0) {
+                        imageUpLeft.setVisibility(VISIBLE);
+                    } else if (x >= screenWidth * 2.0 / 3.0) {
+                        imageUpRight.setVisibility(VISIBLE);
+                        RelativeLayout.LayoutParams layoutParams = (LayoutParams) textViewInfo.getLayoutParams();
+                        layoutParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+                        textViewInfo.setLayoutParams(layoutParams);
+                    } else {
+                        RelativeLayout.LayoutParams layoutParams = (LayoutParams) textViewInfo.getLayoutParams();
+                        layoutParams.addRule(RelativeLayout.CENTER_HORIZONTAL);
+                        textViewInfo.setLayoutParams(layoutParams);
+                        imageUpMiddle.setVisibility(VISIBLE);
+                    }
                     infoDialogParams.setMargins(
                             0,
-                            targetShape.getPoint().y + targetShape.getHeight() / 2,
+                            y + targetShape.getHeight() / 2,
                             0,
                             0);
                 } else {
                     ((RelativeLayout) infoView).setGravity(Gravity.BOTTOM);
+                    if (x <= screenWidth / 3.0) {
+                        imageDownLeft.setVisibility(VISIBLE);
+                    } else if (x >= screenWidth * 2.0 / 3.0) {
+                        imageDownRight.setVisibility(VISIBLE);
+                        RelativeLayout.LayoutParams layoutParams = (LayoutParams) textViewInfo.getLayoutParams();
+                        layoutParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+                        textViewInfo.setLayoutParams(layoutParams);
+                    } else {
+                        RelativeLayout.LayoutParams layoutParams = (LayoutParams) textViewInfo.getLayoutParams();
+                        layoutParams.addRule(RelativeLayout.CENTER_HORIZONTAL);
+                        textViewInfo.setLayoutParams(layoutParams);
+                        imageDownMiddle.setVisibility(VISIBLE);
+                    }
                     infoDialogParams.setMargins(
                             0,
                             0,
                             0,
-                            screenHeight - (targetShape.getPoint().y + targetShape.getHeight() / 2) + 2 * targetShape.getHeight() / 2);
+                            screenHeight - (y + targetShape.getHeight() / 2) + 2 * targetShape.getHeight() / 2);
                 }
 
                 infoView.setLayoutParams(infoDialogParams);
@@ -506,7 +546,12 @@ public class MaterialIntroView extends RelativeLayout {
                 addView(infoView);
 
                 if (!isImageViewEnabled) {
-                    imageViewIcon.setVisibility(GONE);
+                    imageUpMiddle.setVisibility(GONE);
+                    imageUpRight.setVisibility(GONE);
+                    imageUpLeft.setVisibility(GONE);
+                    imageDownMiddle.setVisibility(GONE);
+                    imageDownRight.setVisibility(GONE);
+                    imageDownLeft.setVisibility(GONE);
                 }
 
                 infoView.setVisibility(VISIBLE);
@@ -528,7 +573,7 @@ public class MaterialIntroView extends RelativeLayout {
                 dotViewLayoutParams.width = Utils.dpToPx(Constants.DEFAULT_DOT_SIZE);
                 dotViewLayoutParams.setMargins(
                         targetShape.getPoint().x - (dotViewLayoutParams.width / 2),
-                        targetShape.getPoint().y - (dotViewLayoutParams.height / 2),
+                        targetShape.getPoint().y - (dotViewLayoutParams.height / 8),
                         0,
                         0);
                 dotView.setLayoutParams(dotViewLayoutParams);
@@ -602,6 +647,11 @@ public class MaterialIntroView extends RelativeLayout {
         this.textViewInfo.setTextSize(TypedValue.COMPLEX_UNIT_SP, textViewInfoSize);
     }
 
+    private void setTextViewInfoSizeId(int id) {
+        this.textViewInfo.setText(id);
+    }
+
+
     private void enableInfoDialog(boolean isInfoEnabled) {
         this.isInfoEnabled = isInfoEnabled;
     }
@@ -625,9 +675,7 @@ public class MaterialIntroView extends RelativeLayout {
             this.delayMillis = configuration.getDelayMillis();
             this.isFadeAnimationEnabled = configuration.isFadeAnimationEnabled();
             this.colorTextViewInfo = configuration.getColorTextViewInfo();
-            this.isDotViewEnabled = configuration.isDotViewEnabled();
             this.dismissOnTouch = configuration.isDismissOnTouch();
-            this.colorTextViewInfo = configuration.getColorTextViewInfo();
             this.focusType = configuration.getFocusType();
             this.focusGravity = configuration.getFocusGravity();
         }
@@ -718,6 +766,11 @@ public class MaterialIntroView extends RelativeLayout {
 
         public Builder setInfoTextSize(int textSize) {
             materialIntroView.setTextViewInfoSize(textSize);
+            return this;
+        }
+
+        public Builder setInfoTextSizeId(int id) {
+            materialIntroView.setTextViewInfoSizeId(id);
             return this;
         }
 

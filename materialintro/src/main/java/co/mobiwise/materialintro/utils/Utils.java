@@ -57,4 +57,14 @@ public class Utils {
         double v = screenWidth * 1.0 / screenHeight;
         return v >= 1.5;
     }
+
+
+    public static double getVirtualWidth(Context context){
+        int screenWidth = getScreenWidth(context);
+        if (weightEquals(context)) {
+            return screenWidth / 3.0;
+        } else {
+            return screenWidth * 4.0 / 10;
+        }
+    }
 }

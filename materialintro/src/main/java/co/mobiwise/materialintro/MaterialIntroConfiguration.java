@@ -25,7 +25,6 @@ public class MaterialIntroConfiguration {
 
     private int colorTextViewInfo;
 
-    private boolean isDotViewEnabled;
 
     private boolean isImageViewEnabled;
 
@@ -35,12 +34,11 @@ public class MaterialIntroConfiguration {
         maskColor = Constants.DEFAULT_MASK_COLOR;
         delayMillis = Constants.DEFAULT_DELAY_MILLIS;
         padding = Constants.DEFAULT_TARGET_PADDING;
-        colorTextViewInfo = Constants.DEFAULT_COLOR_TEXTVIEW_INFO;
+        colorTextViewInfo = Constants.DEFAULT_COLOR_TEXT_VIEW_INFO;
         focusType = Focus.ALL;
         focusGravity = FocusGravity.CENTER;
         isFadeAnimationEnabled = false;
         dismissOnTouch = false;
-        isDotViewEnabled = false;
         isImageViewEnabled = true;
     }
 
@@ -118,15 +116,10 @@ public class MaterialIntroConfiguration {
         this.colorTextViewInfo = colorTextViewInfo;
     }
 
-    public boolean isDotViewEnabled() {
-        return isDotViewEnabled;
-    }
+
 
     public boolean isImageViewEnabled(){
         return isImageViewEnabled;
     }
 
-    public void setDotViewEnabled(boolean dotViewEnabled) {
-        isDotViewEnabled = dotViewEnabled;
-    }
 }
